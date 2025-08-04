@@ -4,28 +4,34 @@ require_once 'utils/db.php';
 $loginError = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
+  $username = trim($_POST['username']);
+  $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $user = $res->fetch_assoc();
+  $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+  $stmt->bind_param("s", $username);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $user = $res->fetch_assoc();
 
-    if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user'] = $user;
-        header('Location: index.php');
-        exit();
-    } else {
-        $loginError = 'Username atau Password salah!';
+  if ($user && password_verify($password, $user['password'])) {
+    $_SESSION['user'] = $user;
+    if ($user['role'] === 'admin') {
+      header('Location: admin/index.php');
+      exit();
+    } else if ($user['role'] === 'karyawan') {
+      header('Location: index.php');
+      exit();
     }
+  } else {
+    $loginError = 'Username atau Password salah!';
+  }
 }
 
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -46,34 +52,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="POST" class="space-y-4">
       <div>
         <label for="username" class="block text-gray-700 mb-1">Username</label>
-        <input
-          id="username"
-          name="username"
-          type="text"
-          placeholder="Masukkan username"
-          required
-          autofocus
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <input id="username" name="username" type="text" placeholder="Masukkan username" required autofocus
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
       <div>
         <label for="password" class="block text-gray-700 mb-1">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="Masukkan password"
-          required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <input id="password" name="password" type="password" placeholder="Masukkan password" required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
-      <button
-        type="submit"
-        class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-      >
+      <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
         Masuk
       </button>
     </form>
   </div>
 </body>
+
 </html>
